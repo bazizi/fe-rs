@@ -31,6 +31,7 @@ struct DirEntry {
 struct WorkingDirectory {
     path: String,
     children: Vec<Option<DirEntry>>,
+    curr_index: usize,
 }
 
 #[derive(Default)]
@@ -40,13 +41,15 @@ pub struct Home {
     cwd: Option<WorkingDirectory>,
     history_backward: Vec<WorkingDirectory>,
     history_forward: Vec<WorkingDirectory>,
-    curr_index: Option<usize>,
     selected: bool,
 }
 
 impl Home {
     pub fn new() -> Self {
-        Self { cwd: Some(WorkingDirectory { path: "\\".to_string(), children: vec![] }), ..Self::default() }
+        Self {
+            cwd: Some(WorkingDirectory { path: "\\".to_string(), children: vec![], curr_index: 0 }),
+            ..Self::default()
+        }
     }
 }
 
@@ -76,15 +79,16 @@ impl Component for Home {
     }
 
     fn handle_key_events(&mut self, key: KeyEvent) -> Result<Option<Action>> {
+        let cwd = self.cwd.as_mut().unwrap();
         match key.code {
             KeyCode::Char('j') | KeyCode::Down => {
-                if self.curr_index.is_some() {
-                    self.curr_index.replace(self.curr_index.unwrap() + 1);
+                if cwd.curr_index != cwd.children.len() {
+                    cwd.curr_index = cwd.curr_index + 1;
                 }
             },
             KeyCode::Char('k') | KeyCode::Up => {
-                if self.curr_index.is_some() && Some(0) != self.curr_index {
-                    self.curr_index.replace(self.curr_index.unwrap() - 1);
+                if 0 != cwd.curr_index {
+                    cwd.curr_index = cwd.curr_index - 1;
                 }
             },
             KeyCode::Enter => {
@@ -126,12 +130,13 @@ impl Component for Home {
     }
 
     fn draw(&mut self, f: &mut Frame<'_>, area: Rect) -> Result<()> {
-        if self.selected && self.curr_index.is_some() {
-            let selected_item =
-                self.cwd.as_ref().unwrap().children[*self.curr_index.as_ref().unwrap()].as_ref().unwrap().path.clone();
+        let cwd = self.cwd.as_mut().unwrap();
+
+        if self.selected {
+            let selected_item = cwd.children[cwd.curr_index].as_ref().unwrap().path.clone();
             if Path::new(&selected_item).is_dir() {
                 let cwd = self.cwd.take().unwrap();
-                self.cwd = Some(WorkingDirectory { path: selected_item, children: vec![] });
+                self.cwd = Some(WorkingDirectory { path: selected_item, children: vec![], curr_index: cwd.curr_index });
                 self.history_backward.push(cwd);
             }
             self.selected = false;
@@ -153,13 +158,7 @@ impl Component for Home {
             }
         }
 
-        if self.curr_index.is_none() {
-            if !cwd.children.is_empty() {
-                self.curr_index = Some(0);
-            }
-        } else {
-            self.curr_index = Some(min(*self.curr_index.as_ref().unwrap(), cwd.children.len() - 1));
-        }
+        cwd.curr_index = min(cwd.curr_index, cwd.children.len() - 1);
 
         let lines = Layout::default()
             .direction(Direction::Vertical)
@@ -176,7 +175,7 @@ impl Component for Home {
             }
 
             let mut paragraph = Paragraph::new(dir_entry_text.as_str());
-            let is_selected = self.curr_index.is_some() && Some(i) == self.curr_index;
+            let is_selected = i == cwd.curr_index;
             if is_selected {
                 paragraph = paragraph.set_style(Style::new().bg(Color::Magenta));
             }
