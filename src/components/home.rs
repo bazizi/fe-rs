@@ -81,6 +81,31 @@ impl Home {
             }
         }
     }
+
+    fn run_launch_cmd(&self) {
+        if !cfg!(target_os = "windows") {
+            // TODO: Support other platforms
+            return;
+        }
+
+        let cwd = self.state.cwd.as_ref().unwrap();
+        if let Some(child) = &cwd.children[cwd.curr_index] {
+            if std::process::Command::new("start").arg(Path::new(&child.path)).spawn().is_err() {
+                // TODO: error dialog
+            }
+        }
+    }
+
+    fn build_explorer_cmd(&self) {
+        if !cfg!(target_os = "windows") {
+            // TODO: Support other platforms
+        }
+
+        let cwd = self.state.cwd.as_ref().unwrap();
+        if std::process::Command::new("explorer").arg(Path::new(&cwd.path)).spawn().is_err() {
+            // TODO: error dialog
+        }
+    }
 }
 
 fn get_dir_entry_icon(dir_entry_text: &str) -> String {
@@ -151,12 +176,7 @@ impl Component for Home {
                 }
             },
             KeyCode::Char('e') => {
-                if let Some(cwd) = &self.state.cwd {
-                    let cmd = format!("explorer C:{}", cwd.path);
-                    if std::process::Command::new(cmd).spawn().is_err() {
-                        // TODO: error dialog
-                    }
-                }
+                self.build_explorer_cmd();
             },
             _ => {},
         }
@@ -184,10 +204,7 @@ impl Component for Home {
                     Some(WorkingDirectory { path: selected_item, children: vec![], curr_index: cwd.curr_index });
                 self.state.history_backward.push(cwd);
             } else {
-                let selected_item = format!("C:{}", cwd.children[cwd.curr_index].as_ref().unwrap().path.clone());
-                if std::process::Command::new(selected_item).spawn().is_err() {
-                    // TODO: error dialog
-                }
+                self.run_launch_cmd();
             }
             self.state.selected = false;
             Home::save_settings(&self.state);
@@ -248,4 +265,9 @@ impl Component for Home {
 
         Ok(())
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::Home;
 }

@@ -1,3 +1,5 @@
+- Feature: Error dialog
+- Feature: Async load
 - Feature: Ability to launch external file explorer
 - Feature: Parent directory + shortcut key
 - Feature: filtering
