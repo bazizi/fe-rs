@@ -1,3 +1,4 @@
+- Feature: Help dialog
 - Feature: Error dialog
 - Feature: Async load
 - Feature: Ability to launch external file explorer

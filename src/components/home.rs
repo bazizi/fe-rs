@@ -90,19 +90,36 @@ impl Home {
 
         let cwd = self.state.cwd.as_ref().unwrap();
         if let Some(child) = &cwd.children[cwd.curr_index] {
-            if std::process::Command::new("start").arg(Path::new(&child.path)).spawn().is_err() {
+            if std::process::Command::new("cmd")
+                .args(["/C", "start", Path::new(&child.path).to_str().unwrap()])
+                .spawn()
+                .is_err()
+            {
                 // TODO: error dialog
             }
         }
     }
 
-    fn build_explorer_cmd(&self) {
+    fn run_explorer_cmd(&self) {
         if !cfg!(target_os = "windows") {
             // TODO: Support other platforms
         }
 
         let cwd = self.state.cwd.as_ref().unwrap();
         if std::process::Command::new("explorer").arg(Path::new(&cwd.path)).spawn().is_err() {
+            // TODO: error dialog
+        }
+    }
+
+    fn run_shell_cmd(&self) {
+        if !cfg!(target_os = "windows") {
+            // TODO: Support other platforms
+            return;
+        }
+
+        let cwd = self.state.cwd.as_ref().unwrap();
+        if std::process::Command::new("cmd").current_dir(&cwd.path).args(["/C", "start", "powershell"]).spawn().is_err()
+        {
             // TODO: error dialog
         }
     }
@@ -176,7 +193,10 @@ impl Component for Home {
                 }
             },
             KeyCode::Char('e') => {
-                self.build_explorer_cmd();
+                self.run_explorer_cmd();
+            },
+            KeyCode::Char('s') => {
+                self.run_shell_cmd();
             },
             _ => {},
         }
