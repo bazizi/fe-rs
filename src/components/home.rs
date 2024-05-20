@@ -85,21 +85,21 @@ impl Home {
 
 fn get_dir_entry_icon(dir_entry_text: &str) -> String {
     if dir_entry_text.ends_with(".mp3") {
-        '🎹'.to_string()
+        "🎹 ".to_string()
     } else if dir_entry_text.starts_with(".") {
-        '⚙'.to_string()
+        "⚙ ".to_string()
     } else if dir_entry_text.ends_with(".exe") {
-        '💾'.to_string()
+        "💾 ".to_string()
     } else if dir_entry_text.ends_with(".zip") {
-        '🗜'.to_string()
+        "🗜 ".to_string()
     } else if dir_entry_text.ends_with(".png")
         || dir_entry_text.ends_with(".jpg")
         || dir_entry_text.ends_with(".jpeg")
         || dir_entry_text.ends_with(".bmp")
     {
-        '🖼'.to_string()
+        "🖼 ".to_string()
     } else {
-        '📃'.to_string()
+        "📃 ".to_string()
     }
 }
 
@@ -150,6 +150,14 @@ impl Component for Home {
                     }
                 }
             },
+            KeyCode::Char('e') => {
+                if let Some(cwd) = &self.state.cwd {
+                    let cmd = format!("explorer C:{}", cwd.path);
+                    if std::process::Command::new(cmd).spawn().is_err() {
+                        // TODO: error dialog
+                    }
+                }
+            },
             _ => {},
         }
 
@@ -175,6 +183,11 @@ impl Component for Home {
                 self.state.cwd =
                     Some(WorkingDirectory { path: selected_item, children: vec![], curr_index: cwd.curr_index });
                 self.state.history_backward.push(cwd);
+            } else {
+                let selected_item = format!("C:{}", cwd.children[cwd.curr_index].as_ref().unwrap().path.clone());
+                if std::process::Command::new(selected_item).spawn().is_err() {
+                    // TODO: error dialog
+                }
             }
             self.state.selected = false;
             Home::save_settings(&self.state);
@@ -218,7 +231,7 @@ impl Component for Home {
                 if let Some(file_name) = file_name.to_str() {
                     let mut dir_entry_text = file_name.to_string();
                     if dir_entry.is_dir {
-                        dir_entry_text = "📂".to_owned() + &dir_entry_text;
+                        dir_entry_text = "📂 ".to_owned() + &dir_entry_text;
                     } else {
                         dir_entry_text = get_dir_entry_icon(&dir_entry_text) + &dir_entry_text;
                     }

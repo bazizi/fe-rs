@@ -1,3 +1,4 @@
+- Feature: Ability to launch external file explorer
 - Feature: Parent directory + shortcut key
 - Feature: filtering
 - Bugfix: items outside the rendering Window
@@ -10,3 +11,4 @@
 - Feature: state serialization
 - Feature: ability to open files using default program
 - Feature: Encrypt/decrypt files
+- Feature: Mouse support

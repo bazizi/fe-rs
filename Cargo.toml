@@ -38,3 +38,6 @@ tracing-subscriber = { version = "0.3.17", features = ["env-filter", "serde"] }
 
 [build-dependencies]
 vergen = { version = "8.2.6", features = [ "build", "git", "gitoxide", "cargo" ]}
+
+[target.'cfg(target_os = "windows")'.build-dependencies]
+winres = "0.1"
