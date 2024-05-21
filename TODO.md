@@ -1,4 +1,3 @@
-- Feature: Tabs
 - Feature: Help dialog
 - Feature: Error dialog
 - Feature: Async load

@@ -175,14 +175,23 @@ impl Component for Home {
                 let cwd = &mut self.state.tabs[self.state.curr_tab_index].cwd;
                 if cwd.curr_index != cwd.children.len() {
                     cwd.curr_index += 1;
-                    Home::save_settings(&self.state);
                 }
             },
             KeyCode::Char('k') | KeyCode::Up => {
-                let cwd = &mut self.state.tabs[self.state.curr_tab_index].cwd;
-                if 0 != cwd.curr_index {
-                    cwd.curr_index -= 1;
-                    Home::save_settings(&self.state);
+                if key.modifiers & KeyModifiers::ALT == KeyModifiers::ALT {
+                    if let Some(path) = Path::new(&self.state.tabs[self.state.curr_tab_index].cwd.path).parent() {
+                        let new_path = path.to_str().unwrap().to_string();
+                        let current_cwd = self.state.tabs[self.state.curr_tab_index].cwd.clone();
+                        self.state.tabs[self.state.curr_tab_index].history_backward.push(current_cwd);
+                        self.state.tabs[self.state.curr_tab_index].cwd.path = new_path;
+                        self.state.tabs[self.state.curr_tab_index].cwd.children.clear();
+                        Home::save_settings(&self.state);
+                    }
+                } else {
+                    let cwd = &mut self.state.tabs[self.state.curr_tab_index].cwd;
+                    if 0 != cwd.curr_index {
+                        cwd.curr_index -= 1;
+                    }
                 }
             },
             KeyCode::Enter => {
@@ -326,7 +335,8 @@ impl Component for Home {
             for i in 0..self.state.tabs.len() {
                 let tab_path = &self.state.tabs[i].cwd.path;
                 let mut block = Block::default()
-                    .title(Path::new(Path::new(&tab_path)).components().last().unwrap().as_os_str().to_str().unwrap());
+                    .title(Path::new(Path::new(&tab_path)).components().last().unwrap().as_os_str().to_str().unwrap())
+                    .title_alignment(Alignment::Center);
 
                 if i == self.state.curr_tab_index {
                     block = block.set_style(Style::new().bg(Color::LightMagenta));
@@ -336,24 +346,24 @@ impl Component for Home {
 
                 f.render_widget(ui_tab, ui_region_tabs[i]);
             }
+        }
 
-            for i in 0..self.state.tabs[self.state.curr_tab_index].cwd.children.len() {
-                let dir_entry = &self.state.tabs[self.state.curr_tab_index].cwd.children[i];
-                if let Some(file_name) = Path::new(&dir_entry.path.clone()).file_name() {
-                    if let Some(file_name) = file_name.to_str() {
-                        let mut dir_entry_text = file_name.to_string();
-                        if dir_entry.is_dir {
-                            dir_entry_text = "📂 ".to_owned() + &dir_entry_text;
-                        } else {
-                            dir_entry_text = get_dir_entry_icon(&dir_entry_text) + &dir_entry_text;
-                        }
-
-                        let mut paragraph = Paragraph::new(dir_entry_text.as_str());
-                        if i == self.state.tabs[self.state.curr_tab_index].cwd.curr_index {
-                            paragraph = paragraph.set_style(Style::new().bg(Color::LightMagenta));
-                        }
-                        f.render_widget(paragraph, regions[i + UI_REGION_DIR_ENTRIES]);
+        for i in 0..self.state.tabs[self.state.curr_tab_index].cwd.children.len() {
+            let dir_entry = &self.state.tabs[self.state.curr_tab_index].cwd.children[i];
+            if let Some(file_name) = Path::new(&dir_entry.path.clone()).file_name() {
+                if let Some(file_name) = file_name.to_str() {
+                    let mut dir_entry_text = file_name.to_string();
+                    if dir_entry.is_dir {
+                        dir_entry_text = "📂 ".to_owned() + &dir_entry_text;
+                    } else {
+                        dir_entry_text = get_dir_entry_icon(&dir_entry_text) + &dir_entry_text;
                     }
+
+                    let mut paragraph = Paragraph::new(dir_entry_text.as_str());
+                    if i == self.state.tabs[self.state.curr_tab_index].cwd.curr_index {
+                        paragraph = paragraph.set_style(Style::new().bg(Color::LightMagenta));
+                    }
+                    f.render_widget(paragraph, regions[i + UI_REGION_DIR_ENTRIES]);
                 }
             }
         }
