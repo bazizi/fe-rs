@@ -195,8 +195,8 @@ impl Component for Home {
                         self.state.tabs[self.state.curr_tab_index].history_forward.push(old_cwd);
                         self.state.tabs[self.state.curr_tab_index].cwd = history_item;
                     }
-                } else {
-                    self.state.curr_tab_index = max(0, self.state.curr_tab_index - 1);
+                } else if self.state.curr_tab_index != 0 {
+                    self.state.curr_tab_index -= 1;
                 }
                 Home::save_settings(&self.state);
             },
@@ -207,8 +207,8 @@ impl Component for Home {
                         self.state.tabs[self.state.curr_tab_index].history_backward.push(old_cwd);
                         self.state.tabs[self.state.curr_tab_index].cwd = history_item;
                     }
-                } else {
-                    self.state.curr_tab_index = min(self.state.tabs.len() - 1, self.state.curr_tab_index + 1);
+                } else if self.state.curr_tab_index != self.state.tabs.len() - 1 {
+                    self.state.curr_tab_index += 1;
                 }
                 Home::save_settings(&self.state);
             },
@@ -221,6 +221,12 @@ impl Component for Home {
             KeyCode::Char('t') => {
                 self.state.tabs.push(self.state.tabs[self.state.curr_tab_index].clone());
                 Home::save_settings(&self.state);
+            },
+            KeyCode::Char('x') => {
+                self.state.tabs.remove(self.state.curr_tab_index);
+                if self.state.curr_tab_index >= self.state.tabs.len() && self.state.curr_tab_index != 0 {
+                    self.state.curr_tab_index -= 1;
+                }
             },
             _ => {},
         }
