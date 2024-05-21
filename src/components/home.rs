@@ -61,7 +61,7 @@ const SETTINGS_FILE_NAME: &str = "fe-rs-settings.json";
 const UI_REGION_TABS_BAR: usize = 0;
 const UI_REGION_ADDRESS_BAR: usize = 1;
 const UI_REGION_DIR_ENTRIES: usize = 2;
-const UI_TAB_WIDTH: u16 = 10;
+const UI_TAB_WIDTH: u16 = 20;
 const UI_SPACE_BETWEEN_TABS: u16 = 2;
 
 impl Home {
